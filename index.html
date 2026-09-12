@@ -174,7 +174,7 @@ body::before{display:none}
 <div class="secao blue">⏱️ Cardio</div>
 <div class="card" data-id="c_esteira"><button class="check-btn"></button><div class="info"><h3>🏃‍♂️ Esteira</h3><div class="cardio-timer" id="t-esteira">00:00</div><div class="cardio-total" id="total-esteira"></div><div class="cardio-btns"><button class="btn-cardio-start" id="btn-esteira">▶ Iniciar</button><button class="btn-cardio-zero" id="zero-esteira">Zerar</button></div></div></div>
 <div class="card" data-id="c_escada"><button class="check-btn"></button><div class="info"><h3>🪜 Escada</h3><div class="cardio-timer" id="t-escada">00:00</div><div class="cardio-total" id="total-escada"></div><div class="cardio-btns"><button class="btn-cardio-start" id="btn-escada">▶ Iniciar</button><button class="btn-cardio-zero" id="zero-escada">Zerar</button></div></div></div>
-<div class="card" data-id="c_corrida"><button class="check-btn"></button><div class="info"><h3>🏁 Corrida de rua</h3><div class="dicas" style="margin-bottom:8px">Só cronômetro + check. Vale sozinha ou junto com a academia.</div><div class="cardio-timer" id="t-corrida">00:00</div><div class="cardio-total" id="total-corrida"></div><div class="cardio-btns"><button class="btn-cardio-start" id="btn-corrida">▶ Iniciar</button><button class="btn-cardio-zero" id="zero-corrida">Zerar</button></div></div></div>
+<div class="card" data-id="c_corrida"><button class="check-btn"></button><div class="info"><h3>🏁 Corrida de rua</h3><div class="dicas" style="margin-bottom:8px">Só cronômetro + check. Vale sozinha ou junto com a academia.</div><div class="cardio-timer" id="t-corrida">00:00</div><div class="cardio-total" id="total-corrida"></div><div class="cardio-total" id="gps-corrida">📍 GPS desligado</div><div class="cardio-btns"><button class="btn-cardio-start" id="btn-corrida">▶ Iniciar</button><button class="btn-cardio-zero" id="zero-corrida">Zerar</button></div><div class="cardio-btns" style="margin-top:8px"><button class="btn-cardio-zero" id="btn-gps" style="flex:1">📍 Ativar GPS</button></div><div class="hint" style="margin-top:8px">Tempo continua mesmo com a tela apagada. GPS mede com o app aberto.</div></div></div>
 
 <div class="secao blue">📹 Vídeos (17)</div>
 <div id="lista-videos"><div class="card" data-id="v0"><button class="check-btn" aria-label="feito"></button><div class="info"><h3><span class="tag tag-vid">1</span>Vídeo 1</h3><a class="btn-insta" href="https://www.instagram.com/p/DbEbWlHlAnT/?img_index=2&igsh=ejB0dXd0Mnhkazlz" target="_blank" rel="noopener">▶ Ver vídeo no Instagram</a></div></div>
@@ -247,7 +247,7 @@ body::before{display:none}
 <div class="bottom"><button id="btn-zerar">↩ Zerar dia</button><button class="primary" id="btn-top-encerrar">🏁 Encerrar</button></div>
 
 <script>
-const K_USER="treino_user_V1",K_CHECK="treino_checks_V1",K_CUS="treino_custom_V1",K_TE="cardio_esteira_total_V1",K_TS="cardio_escada_total_V1",K_TE_S="cardio_esteira_sess_V1",K_TS_S="cardio_escada_sess_V1",K_TC="cardio_corrida_total_V1",K_TC_S="cardio_corrida_sess_V1",K_TA="totalwork_accum_V1",K_TST="totalwork_start_V1",K_TR="totalwork_running_V1",K_ENC="treino_encerrado_V1";
+const K_USER="treino_user_V1",K_CHECK="treino_checks_V1",K_CUS="treino_custom_V1",K_TE="cardio_esteira_total_V1",K_TS="cardio_escada_total_V1",K_TE_S="cardio_esteira_sess_V1",K_TS_S="cardio_escada_sess_V1",K_TC="cardio_corrida_total_V1",K_TC_S="cardio_corrida_sess_V1",K_TER="cardio_esteira_run_V1",K_TSR="cardio_escada_run_V1",K_TCR="cardio_corrida_run_V1",K_RD="corrida_dist_V1",K_TA="totalwork_accum_V1",K_TST="totalwork_start_V1",K_TR="totalwork_running_V1",K_ENC="treino_encerrado_V1";
 let filtro="todos";
 function getJ(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}}
 function setJ(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){alert("Armazenamento cheio! Remova fotos antigas.")}}
@@ -325,19 +325,60 @@ arr.push({id,nome:esc(nome).slice(0,120),foto});setJ(K_CUS,arr);
 document.getElementById("custom-nome").value="";document.getElementById("custom-foto").value="";
 renderCustom();renderChecks();
 }
-// cardio (esteira, escada, corrida de rua — mesma lógica)
-const cardio={esteira:{sess:getI(K_TE_S),total:getI(K_TE),run:false,t:null},escada:{sess:getI(K_TS_S),total:getI(K_TS),run:false,t:null},corrida:{sess:getI(K_TC_S),total:getI(K_TC),run:false,t:null}};
-function ckeys(n){return n==="esteira"?[K_TE,K_TE_S]:(n==="escada"?[K_TS,K_TS_S]:[K_TC,K_TC_S])}
-function drawC(n){const c=cardio[n];document.getElementById("t-"+n).textContent=fmt(c.sess);document.getElementById("total-"+n).textContent="Total salvo: "+fmtT(c.total)+" ("+fmt(c.total)+")";const b=document.getElementById("btn-"+n);b.textContent=c.run?"⏸ Pausar":"▶ Iniciar";b.classList.toggle("running",c.run)}
-function togC(n){const c=cardio[n];if(c.run){c.run=false;clearInterval(c.t);persistC(n)}else{c.run=true;autoStartTotal();c.t=setInterval(()=>{c.sess++;c.total++;drawC(n);persistC(n)},1000)}drawC(n)}
-function persistC(n){try{const k=ckeys(n);setI(k[0],cardio[n].total);setI(k[1],cardio[n].sess)}catch(e){}}
-function zeroC(n){const c=cardio[n];if(c.sess===0){if(confirm("Limpar total da "+n+"?")){c.total=0;persistC(n)}}c.sess=0;if(c.run){c.run=false;clearInterval(c.t);persistC(n)}drawC(n);persistC(n)}
+// cardio (esteira, escada, corrida) — tempo por RELÓGIO: continua mesmo com a tela bloqueada
+function ckeys(n){return n==="esteira"?[K_TE,K_TE_S,K_TER]:(n==="escada"?[K_TS,K_TS_S,K_TSR]:[K_TC,K_TC_S,K_TCR])}
+function cElapsed(c){return c.run?c.sAcc+Math.floor((Date.now()-c.runStart)/1000):c.sAcc}
+function cTotal(c){return c.run?c.tAcc+Math.floor((Date.now()-c.runStart)/1000):c.tAcc}
+function mkCardio(n){const k=ckeys(n);const rs=parseInt(localStorage.getItem(k[2])||"0")||0;return{sAcc:getI(k[1]),tAcc:getI(k[0]),run:rs>0,runStart:rs>0?rs:0,t:null,tick:0}}
+const cardio={esteira:mkCardio("esteira"),escada:mkCardio("escada"),corrida:mkCardio("corrida")};
+function drawC(n){const c=cardio[n];document.getElementById("t-"+n).textContent=fmt(cElapsed(c));document.getElementById("total-"+n).textContent="Total salvo: "+fmtT(cTotal(c))+" ("+fmt(cTotal(c))+")";const b=document.getElementById("btn-"+n);b.textContent=c.run?"⏸ Pausar":"▶ Iniciar";b.classList.toggle("running",c.run)}
+function persistC(n){try{const k=ckeys(n),c=cardio[n];setI(k[0],cTotal(c));setI(k[1],cElapsed(c));localStorage.setItem(k[2],c.run?String(c.runStart):"0")}catch(e){}}
+function foldC(n){const c=cardio[n];if(c.run){c.sAcc=cElapsed(c);c.tAcc=cTotal(c);c.runStart=Date.now();persistC(n)}}
+function togC(n){const c=cardio[n];if(c.run){c.sAcc=cElapsed(c);c.tAcc=cTotal(c);c.run=false;c.runStart=0;clearInterval(c.t);persistC(n)}else{c.run=true;c.runStart=Date.now();autoStartTotal();persistC(n);c.tick=0;c.t=setInterval(()=>{drawC(n);if(++c.tick%5===0)foldC(n)},500)}drawC(n);wakeSync()}
+function zeroC(n){const c=cardio[n];if(cElapsed(c)===0){let msg="Limpar total da "+n+"?";if(n==="corrida"&&runDist>0)msg="Limpar total e distância da corrida?";if(confirm(msg)){c.tAcc=0;if(n==="corrida"){runDist=0;persistDist()}persistC(n);drawC(n);wakeSync()}return}c.sAcc=0;if(c.run){c.tAcc=cTotal(c);c.run=false;c.runStart=0;clearInterval(c.t)}persistC(n);drawC(n);wakeSync()}
+// wake lock: tenta manter a tela ligada enquanto algum cronômetro roda
+let wakeLock=null;
+async function wakeSync(){try{const anyRun=cardio.esteira.run||cardio.escada.run||cardio.corrida.run||tRun;if(anyRun&&document.visibilityState==="visible"&&"wakeLock" in navigator){if(!wakeLock)wakeLock=await navigator.wakeLock.request("screen")}else if(wakeLock){await wakeLock.release();wakeLock=null}}catch(e){wakeLock=null}}
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"){drawC("esteira");drawC("escada");drawC("corrida");drawT();wakeSync()}else{try{persistC("esteira");persistC("escada");persistC("corrida");persistDist()}catch(e){}}});
 document.getElementById("btn-esteira").onclick=()=>togC("esteira");
 document.getElementById("btn-escada").onclick=()=>togC("escada");
 document.getElementById("btn-corrida").onclick=()=>togC("corrida");
 document.getElementById("zero-esteira").onclick=()=>zeroC("esteira");
 document.getElementById("zero-escada").onclick=()=>zeroC("escada");
 document.getElementById("zero-corrida").onclick=()=>zeroC("corrida");
+["esteira","escada","corrida"].forEach(n=>{const c=cardio[n];if(c.run){c.t=setInterval(()=>{drawC(n);if(++c.tick%5===0)foldC(n)},500)}});
+// GPS corrida de rua — distância e ritmo (requer HTTPS + permissão; pausa com tela bloqueada)
+let runDist=parseFloat(localStorage.getItem(K_RD)||"0")||0,lastFix=null,gpsWatch=null,gpsOn=false,runMoveT=0;
+function fmtKm(km){return km.toFixed(2).replace(".",",")+" km"}
+function paceFmt(ms){if(!ms||ms<=0||!isFinite(ms))return"—";const s=1000/ms;return Math.floor(s/60)+"'"+String(Math.floor(s%60)).padStart(2,"0")+'"/km'}
+function persistDist(){try{localStorage.setItem(K_RD,String(runDist))}catch(e){}}
+function drawGps(){const el=document.getElementById("gps-corrida");if(el)el.textContent=(gpsOn?"📍 GPS ligado • ":"📍 ")+fmtKm(runDist);const b=document.getElementById("btn-gps");if(b)b.textContent=gpsOn?"📍 Desligar GPS":"📍 Ativar GPS"}
+function hav(a,b){const R=6371000,t=Math.PI/180,dLa=(b.la-a.la)*t,dLo=(b.lo-a.lo)*t,s=Math.sin(dLa/2)*Math.sin(dLa/2)+Math.cos(a.la*t)*Math.cos(b.la*t)*Math.sin(dLo/2)*Math.sin(dLo/2);return 2*R*Math.asin(Math.sqrt(s))}
+document.getElementById("btn-gps").onclick=()=>{
+if(gpsOn){gpsOn=false;if(gpsWatch!=null&&"geolocation" in navigator)navigator.geolocation.clearWatch(gpsWatch);gpsWatch=null;lastFix=null;persistDist();drawGps();return}
+if(!("geolocation" in navigator)){alert("Este celular/navegador não tem GPS.");return}
+gpsOn=true;lastFix=null;drawGps();
+gpsWatch=navigator.geolocation.watchPosition(p=>{
+try{
+if((p.coords.accuracy||9999)>30)return;
+const fix={la:p.coords.latitude,lo:p.coords.longitude,t:p.timestamp};
+if(lastFix){
+const dt=(fix.t-lastFix.t)/1000;if(dt<=0)return;
+const d=hav(lastFix,fix);if(d>500)return;
+if(d>1.5){runDist+=d/1000;runMoveT+=dt;
+const v=(p.coords.speed!=null&&p.coords.speed>0)?p.coords.speed:(d/dt);
+const avg=runMoveT>0?(runDist*1000/runMoveT):0;
+const el=document.getElementById("gps-corrida");
+if(el)el.textContent="📍 "+fmtKm(runDist)+" • agora "+paceFmt(v)+" • médio "+paceFmt(avg);
+persistDist()}
+}
+lastFix=fix;
+}catch(e){}
+},e=>{
+gpsOn=false;if(gpsWatch!=null)navigator.geolocation.clearWatch(gpsWatch);gpsWatch=null;drawGps();
+alert(e.code===1?"GPS bloqueado: permita a localização nas configurações do navegador.":"Não foi possível obter o GPS agora.");
+},{enableHighAccuracy:true,timeout:15000,maximumAge:0});
+};
 // total workout
 let tAcc=getI(K_TA),tStart=getI(K_TST),tRun=localStorage.getItem(K_TR)==="1";
 function totalNow(){return tRun?tAcc+Math.floor((Date.now()-tStart)/1000):tAcc}
@@ -351,7 +392,7 @@ drawT();
 };
 let tickN=0;
 setInterval(()=>{drawT();tickN++;if(tRun&&tickN%5===0){tAcc=totalNow();tStart=Date.now();persistTotal()}},1000);
-window.addEventListener("beforeunload",()=>{try{saveUser();persistC("esteira");persistC("escada");persistC("corrida");if(tRun){tAcc=totalNow();tStart=Date.now();persistTotal()}}catch(e){}});
+window.addEventListener("beforeunload",()=>{try{saveUser();persistC("esteira");persistC("escada");persistC("corrida");persistDist();if(tRun){tAcc=totalNow();tStart=Date.now();persistTotal()}}catch(e){}});
 // encerrar / resumo
 const MOB_NOMES=["Rotação da Coluna Sentada","Postura da Borboleta","Postura da Cobra","Cachorro Olhando para Baixo","Passada Profunda","Meia Abertura","Passada Crescente","Postura do Lagarto","Agachamento Profundo","Postura do Camelo","Postura do Pombo","Postura da Criança"];
 function encerrar(){
@@ -363,7 +404,8 @@ for(let i=0;i<17;i++)if(f["v"+i])doneVid.push("Vídeo "+(i+1));
 getCus().forEach(c=>{if(f[c.id])doneCus.push(c)});
 if(doneMob.length+doneVid.length+doneCus.length+(f.c_esteira?1:0)+(f.c_escada?1:0)+(f.c_corrida?1:0)===0){if(!confirm("Nada marcado. Encerrar mesmo assim?"))return}
 if(tRun){tAcc=totalNow();tRun=false;setI(K_TA,tAcc);localStorage.setItem(K_TR,"0")}
-persistC("esteira");persistC("escada");persistC("corrida");
+foldC("esteira");foldC("escada");foldC("corrida");
+persistC("esteira");persistC("escada");persistC("corrida");persistDist();
 const enc={encerrado:true,fim:new Date().toISOString(),total:tAcc};setJ(K_ENC,enc);
 showResumo();
 }
@@ -387,7 +429,7 @@ document.getElementById("r-cardio").textContent="E "+fmt(tE)+" • S "+fmt(tS)+"
 let h="";
 if(f.c_esteira)h+='<div class="res-sec">Cardio</div><div class="res-item">🏃‍♂️ Esteira '+fmt(tE)+" ✅</div>";
 if(f.c_escada)h+=(h.indexOf("res-sec")<0?'<div class="res-sec">Cardio</div>':"")+'<div class="res-item">🪜 Escada '+fmt(tS)+" ✅</div>";
-if(f.c_corrida)h+=(h.indexOf("res-sec")<0?'<div class="res-sec">Cardio</div>':"")+'<div class="res-item">🏁 Corrida de rua '+fmt(tC)+" ✅</div>";
+if(f.c_corrida)h+=(h.indexOf("res-sec")<0?'<div class="res-sec">Cardio</div>':"")+'<div class="res-item">🏁 Corrida de rua '+fmt(tC)+(runDist>0?" • "+fmtKm(runDist):"")+" ✅</div>";
 h+='<div class="res-sec">Mobilidade ('+mobK.length+'/12)</div>';
 if(!mobK.length)h+='<div class="res-item">—</div>';
 for(let i=0;i<12;i++)if(f["m"+i]){const im=document.querySelector('[data-id="m'+i+'"] img');h+='<div class="res-item">✅ '+(i+1)+". "+MOB_NOMES[i]+"</div>";if(im)h+='<img src="'+im.src+'">'}
@@ -408,8 +450,8 @@ function voltar(){try{const e=getJ(K_ENC,{});e.encerrado=false;setJ(K_ENC,e)}cat
 document.getElementById("btn-encerrar").onclick=encerrar;
 document.getElementById("btn-top-encerrar").onclick=encerrar;
 document.getElementById("btn-voltar").onclick=voltar;
-document.getElementById("btn-novo").onclick=()=>{if(confirm("Começar novo treino? Apaga checks, fotos extras e tempos (mantém seu nome).")){const keepNome=(nomeEl&&nomeEl.value||"");[K_CHECK,K_CUS,K_TE,K_TS,K_TE_S,K_TS_S,K_TC,K_TC_S,K_TA,K_TST,K_TR,K_ENC].forEach(k=>localStorage.removeItem(k));try{localStorage.setItem(K_USER,JSON.stringify({nome:keepNome,data:todayLocal()}))}catch(e){}location.reload()}};
-document.getElementById("btn-zerar").onclick=()=>{if(confirm("Zerar dia? Zera checks e todos os tempos (total, esteira, escada, corrida).")){try{if(cardio.esteira.run)clearInterval(cardio.esteira.t);if(cardio.escada.run)clearInterval(cardio.escada.t);if(cardio.corrida.run)clearInterval(cardio.corrida.t)}catch(e){}[K_CHECK,K_TE,K_TS,K_TE_S,K_TS_S,K_TC,K_TC_S,K_TA,K_TST,K_TR,K_ENC].forEach(k=>localStorage.removeItem(k));location.reload()}};
+document.getElementById("btn-novo").onclick=()=>{if(confirm("Começar novo treino? Apaga checks, fotos extras e tempos (mantém seu nome).")){const keepNome=(nomeEl&&nomeEl.value||"");[K_CHECK,K_CUS,K_TE,K_TS,K_TE_S,K_TS_S,K_TC,K_TC_S,K_TER,K_TSR,K_TCR,K_RD,K_TA,K_TST,K_TR,K_ENC].forEach(k=>localStorage.removeItem(k));try{localStorage.setItem(K_USER,JSON.stringify({nome:keepNome,data:todayLocal()}))}catch(e){}location.reload()}};
+document.getElementById("btn-zerar").onclick=()=>{if(confirm("Zerar dia? Zera checks e todos os tempos (total, esteira, escada, corrida).")){try{if(cardio.esteira.run)clearInterval(cardio.esteira.t);if(cardio.escada.run)clearInterval(cardio.escada.t);if(cardio.corrida.run)clearInterval(cardio.corrida.t)}catch(e){}[K_CHECK,K_TE,K_TS,K_TE_S,K_TS_S,K_TC,K_TC_S,K_TER,K_TSR,K_TCR,K_RD,K_TA,K_TST,K_TR,K_ENC].forEach(k=>localStorage.removeItem(k));location.reload()}};
 document.getElementById("btn-share").onclick=()=>{if(navigator.share)navigator.share({title:"Meu Treino",text:document.getElementById("r-titulo").textContent+" "+document.getElementById("r-total").textContent}).catch(()=>{});else alert("Use Print para salvar imagem")};
 document.getElementById("f-todos").onclick=e=>{filtro="todos";setA(e.target);renderChecks()};
 document.getElementById("f-pend").onclick=e=>{filtro="pend";setA(e.target);renderChecks()};
@@ -430,7 +472,7 @@ const total=12+17+3+getCus().length;
 const items=[];
 if(f.c_esteira)items.push("Esteira "+fmt(getI(K_TE)));
 if(f.c_escada)items.push("Escada "+fmt(getI(K_TS)));
-if(f.c_corrida)items.push("Corrida "+fmt(getI(K_TC)));
+if(f.c_corrida)items.push("Corrida "+fmt(getI(K_TC))+(runDist>0?" • "+fmtKm(runDist):""));
 for(let i=0;i<12;i++)if(f["m"+i])items.push((i+1)+". "+MOB_NOMES[i]);
 vidK.forEach(k=>items.push("Video "+(parseInt(k.slice(1))+1)));
 cus.forEach(c=>items.push(c.nome.replace(/<[^>]*>/g,"").slice(0,42)));
@@ -523,7 +565,7 @@ if(deferredPrompt){deferredPrompt.prompt();try{await deferredPrompt.userChoice}c
 else{alert("Siga o passo a passo acima no seu celular. Vale pra este arquivo mesmo (ele funciona offline).")}
 };
 function setA(b){document.querySelectorAll(".filters button").forEach(x=>x.classList.remove("active"));b.classList.add("active")}
-function renderAll(){renderCustom();renderChecks();drawC("esteira");drawC("escada");drawC("corrida");drawT();if(getJ(K_ENC,{}).encerrado)showResumo()}
+function renderAll(){renderCustom();renderChecks();drawC("esteira");drawC("escada");drawC("corrida");drawGps();drawT();if(getJ(K_ENC,{}).encerrado)showResumo()}
 renderCustom();
 renderAll();
 </script>
