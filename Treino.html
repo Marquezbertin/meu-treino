@@ -340,7 +340,7 @@ const cardio={esteira:mkCardio("esteira"),escada:mkCardio("escada"),corrida:mkCa
 function drawC(n){const c=cardio[n];document.getElementById("t-"+n).textContent=fmt(cElapsed(c));document.getElementById("total-"+n).textContent="Total salvo: "+fmtT(cTotal(c))+" ("+fmt(cTotal(c))+")";const b=document.getElementById("btn-"+n);b.textContent=c.run?"⏸ Pausar":"▶ Iniciar";b.classList.toggle("running",c.run)}
 function persistC(n){try{const k=ckeys(n),c=cardio[n];setI(k[0],cTotal(c));setI(k[1],cElapsed(c));localStorage.setItem(k[2],c.run?String(c.runStart):"0")}catch(e){}}
 function foldC(n){const c=cardio[n];if(c.run){c.sAcc=cElapsed(c);c.tAcc=cTotal(c);c.runStart=Date.now();persistC(n)}}
-function togC(n){const c=cardio[n];if(c.run){c.sAcc=cElapsed(c);c.tAcc=cTotal(c);c.run=false;c.runStart=0;clearInterval(c.t);persistC(n)}else{c.run=true;c.runStart=Date.now();autoStartTotal();persistC(n);c.tick=0;c.t=setInterval(()=>{drawC(n);if(++c.tick%5===0)foldC(n)},500)}drawC(n);wakeSync()}
+function togC(n){const c=cardio[n];if(c.run){const sessNow=cElapsed(c);c.sAcc=sessNow;c.tAcc=cTotal(c);c.run=false;c.runStart=0;clearInterval(c.t);persistC(n);if(sessNow>=60||(n==="corrida"&&runDist>0.01)){try{const o=getF();if(!o["c_"+n]){o["c_"+n]=1;setJ(K_CHECK,o);renderChecks()}}catch(e){}}}else{c.run=true;c.runStart=Date.now();autoStartTotal();persistC(n);c.tick=0;c.t=setInterval(()=>{drawC(n);if(++c.tick%5===0)foldC(n)},500)}drawC(n);wakeSync()}
 function zeroC(n){const c=cardio[n];if(cElapsed(c)===0){let msg="Limpar total da "+n+"?";if(n==="corrida"&&runDist>0)msg="Limpar total e distância da corrida?";if(confirm(msg)){c.tAcc=0;if(n==="corrida"){runDist=0;runMoveT=0;persistDist()}persistC(n);drawC(n);wakeSync()}return}c.sAcc=0;if(c.run){c.tAcc=cTotal(c);c.run=false;c.runStart=0;clearInterval(c.t)}persistC(n);drawC(n);wakeSync()}
 // wake lock: tenta manter a tela ligada enquanto algum cronômetro roda
 let wakeLock=null;
@@ -459,7 +459,7 @@ document.getElementById("r-cardio").textContent="E "+fmt(tE)+" • S "+fmt(tS)+"
 let h="";
 if(f.c_esteira)h+='<div class="res-sec">Cardio</div><div class="res-item">🏃‍♂️ Esteira '+fmt(tE)+" ✅</div>";
 if(f.c_escada)h+=(h.indexOf("res-sec")<0?'<div class="res-sec">Cardio</div>':"")+'<div class="res-item">🪜 Escada '+fmt(tS)+" ✅</div>";
-if(f.c_corrida){const _t=getI(K_TC),_mt=parseFloat(localStorage.getItem(K_RMT)||"0")||0,_base=(runMoveT>0?runMoveT:(_mt>0?_mt:_t))||1,_av=runDist>0?((runDist*1000)/_base):0;h+=(h.indexOf("res-sec")<0?'<div class="res-sec">Cardio</div>':"")+'<div class="res-item">🏁 Corrida de rua '+fmt(_t)+" ✅</div>";if(runDist>0)h+='<div style="font-size:34px;font-weight:900;color:#111">'+fmtKm(runDist)+'</div><div class="res-item">ritmo médio '+paceFmt(_av)+'</div>'}
+if(f.c_corrida||cElapsed(cardio.corrida)>0||runDist>0){const _t=Math.max(getI(K_TC),cElapsed(cardio.corrida)),_mt=parseFloat(localStorage.getItem(K_RMT)||"0")||0,_base=(runMoveT>0?runMoveT:(_mt>0?_mt:_t))||1,_av=runDist>0?((runDist*1000)/_base):0;h+=(h.indexOf("res-sec")<0?'<div class="res-sec">Cardio</div>':"")+'<div class="res-item">🏁 Corrida de rua '+fmt(_t)+(f.c_corrida?" ✅":"")+"</div>";if(runDist>0)h+='<div style="font-size:34px;font-weight:900;color:#111">'+fmtKm(runDist)+'</div><div class="res-item">ritmo médio '+paceFmt(_av)+'</div>'}
 h+='<div class="res-sec">Mobilidade ('+mobK.length+'/12)</div>';
 if(!mobK.length)h+='<div class="res-item">—</div>';
 for(let i=0;i<12;i++)if(f["m"+i]){const im=document.querySelector('[data-id="m'+i+'"] img');h+='<div class="res-item">✅ '+(i+1)+". "+MOB_NOMES[i]+"</div>";if(im)h+='<img src="'+im.src+'">'}
@@ -502,7 +502,7 @@ const total=12+17+3+getVids().length+getCus().length;
 const items=[];
 if(f.c_esteira)items.push("Esteira "+fmt(getI(K_TE)));
 if(f.c_escada)items.push("Escada "+fmt(getI(K_TS)));
-if(f.c_corrida){const _t2=getI(K_TC),_m2=parseFloat(localStorage.getItem(K_RMT)||"0")||0,_b2=(runMoveT>0?runMoveT:(_m2>0?_m2:_t2))||1;items.push("Corrida "+(runDist>0?fmtKm(runDist)+" em "+fmt(_t2)+" ("+paceFmt((runDist*1000)/_b2)+")":fmt(_t2)))}
+if(f.c_corrida||cElapsed(cardio.corrida)>0||runDist>0){const _t2=Math.max(getI(K_TC),cElapsed(cardio.corrida)),_m2=parseFloat(localStorage.getItem(K_RMT)||"0")||0,_b2=(runMoveT>0?runMoveT:(_m2>0?_m2:_t2))||1;items.push("Corrida "+(runDist>0?fmtKm(runDist)+" em "+fmt(_t2)+" ("+paceFmt((runDist*1000)/_b2)+")":fmt(_t2)))}
 for(let i=0;i<12;i++)if(f["m"+i])items.push((i+1)+". "+MOB_NOMES[i]);
 vidK.forEach(k=>items.push(vidName(k)));
 cus.forEach(c=>items.push(c.nome.replace(/<[^>]*>/g,"").slice(0,42)));
