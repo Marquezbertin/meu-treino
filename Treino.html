@@ -196,6 +196,12 @@ body::before{display:none}
 <div class="card" data-id="v16"><button class="check-btn" aria-label="feito"></button><div class="info"><h3><span class="tag tag-vid">17</span>Vídeo 17</h3><a class="btn-insta" href="https://www.instagram.com/p/Db8atwRFkwG/?img_index=5&stkn=ZzJmM3F1YTA3cHN4" target="_blank" rel="noopener">▶ Ver vídeo no Instagram</a></div></div>
 </div>
 
+<div class="add-box">
+<input type="text" id="vid-nome" placeholder="Nome (ex: Treino de pernas)">
+<input type="text" id="vid-url" placeholder="Cole o link do Reels aqui" inputmode="url">
+<button class="btn-add" id="btn-addvid" style="background:linear-gradient(135deg,#E1306C,#ff5e8a);color:#fff">➕ Adicionar vídeo</button>
+<span class="hint">Achou um treino legal no Instagram? Cole o link que ele entra na lista pra sempre (só sai se você remover).</span>
+</div>
 <div class="secao">➕ Extras / Aparelhos (com foto)</div>
 <div id="lista-custom"></div>
 <div class="add-box">
@@ -247,7 +253,7 @@ body::before{display:none}
 <div class="bottom"><button id="btn-zerar">↩ Zerar dia</button><button class="primary" id="btn-top-encerrar">🏁 Encerrar</button></div>
 
 <script>
-const K_USER="treino_user_V1",K_CHECK="treino_checks_V1",K_CUS="treino_custom_V1",K_TE="cardio_esteira_total_V1",K_TS="cardio_escada_total_V1",K_TE_S="cardio_esteira_sess_V1",K_TS_S="cardio_escada_sess_V1",K_TC="cardio_corrida_total_V1",K_TC_S="cardio_corrida_sess_V1",K_TER="cardio_esteira_run_V1",K_TSR="cardio_escada_run_V1",K_TCR="cardio_corrida_run_V1",K_RD="corrida_dist_V1",K_TA="totalwork_accum_V1",K_TST="totalwork_start_V1",K_TR="totalwork_running_V1",K_ENC="treino_encerrado_V1";
+const K_USER="treino_user_V1",K_CHECK="treino_checks_V1",K_CUS="treino_custom_V1",K_TE="cardio_esteira_total_V1",K_TS="cardio_escada_total_V1",K_TE_S="cardio_esteira_sess_V1",K_TS_S="cardio_escada_sess_V1",K_TC="cardio_corrida_total_V1",K_TC_S="cardio_corrida_sess_V1",K_TER="cardio_esteira_run_V1",K_TSR="cardio_escada_run_V1",K_TCR="cardio_corrida_run_V1",K_RD="corrida_dist_V1",K_RMT="corrida_movetime_V1",K_VU="treino_videos_V1",K_TA="totalwork_accum_V1",K_TST="totalwork_start_V1",K_TR="totalwork_running_V1",K_ENC="treino_encerrado_V1";
 let filtro="todos";
 function getJ(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}}
 function setJ(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){alert("Armazenamento cheio! Remova fotos antigas.")}}
@@ -335,7 +341,7 @@ function drawC(n){const c=cardio[n];document.getElementById("t-"+n).textContent=
 function persistC(n){try{const k=ckeys(n),c=cardio[n];setI(k[0],cTotal(c));setI(k[1],cElapsed(c));localStorage.setItem(k[2],c.run?String(c.runStart):"0")}catch(e){}}
 function foldC(n){const c=cardio[n];if(c.run){c.sAcc=cElapsed(c);c.tAcc=cTotal(c);c.runStart=Date.now();persistC(n)}}
 function togC(n){const c=cardio[n];if(c.run){c.sAcc=cElapsed(c);c.tAcc=cTotal(c);c.run=false;c.runStart=0;clearInterval(c.t);persistC(n)}else{c.run=true;c.runStart=Date.now();autoStartTotal();persistC(n);c.tick=0;c.t=setInterval(()=>{drawC(n);if(++c.tick%5===0)foldC(n)},500)}drawC(n);wakeSync()}
-function zeroC(n){const c=cardio[n];if(cElapsed(c)===0){let msg="Limpar total da "+n+"?";if(n==="corrida"&&runDist>0)msg="Limpar total e distância da corrida?";if(confirm(msg)){c.tAcc=0;if(n==="corrida"){runDist=0;persistDist()}persistC(n);drawC(n);wakeSync()}return}c.sAcc=0;if(c.run){c.tAcc=cTotal(c);c.run=false;c.runStart=0;clearInterval(c.t)}persistC(n);drawC(n);wakeSync()}
+function zeroC(n){const c=cardio[n];if(cElapsed(c)===0){let msg="Limpar total da "+n+"?";if(n==="corrida"&&runDist>0)msg="Limpar total e distância da corrida?";if(confirm(msg)){c.tAcc=0;if(n==="corrida"){runDist=0;runMoveT=0;persistDist()}persistC(n);drawC(n);wakeSync()}return}c.sAcc=0;if(c.run){c.tAcc=cTotal(c);c.run=false;c.runStart=0;clearInterval(c.t)}persistC(n);drawC(n);wakeSync()}
 // wake lock: tenta manter a tela ligada enquanto algum cronômetro roda
 let wakeLock=null;
 async function wakeSync(){try{const anyRun=cardio.esteira.run||cardio.escada.run||cardio.corrida.run||tRun;if(anyRun&&document.visibilityState==="visible"&&"wakeLock" in navigator){if(!wakeLock)wakeLock=await navigator.wakeLock.request("screen")}else if(wakeLock){await wakeLock.release();wakeLock=null}}catch(e){wakeLock=null}}
@@ -347,11 +353,35 @@ document.getElementById("zero-esteira").onclick=()=>zeroC("esteira");
 document.getElementById("zero-escada").onclick=()=>zeroC("escada");
 document.getElementById("zero-corrida").onclick=()=>zeroC("corrida");
 ["esteira","escada","corrida"].forEach(n=>{const c=cardio[n];if(c.run){c.t=setInterval(()=>{drawC(n);if(++c.tick%5===0)foldC(n)},500)}});
+// vídeos do usuário (reels achados no Instagram — biblioteca permanente)
+function getVids(){return getJ(K_VU,[])}
+function vidName(id){if(/^v\d+$/.test(id))return "Vídeo "+(parseInt(id.slice(1))+1);const v=getVids().find(x=>x.id===id);return v?v.nome:"Vídeo"}
+function renderVids(){
+const box=document.getElementById("lista-videos");if(!box)return;
+box.querySelectorAll('[data-id^="vu"]').forEach(d=>d.remove());
+getVids().forEach(v=>{
+const div=document.createElement("div");div.className="card";div.dataset.id=v.id;
+div.innerHTML='<button class="check-btn"></button><div class="info"><h3><span class="tag tag-vid">▶</span>'+esc(v.nome)+'</h3><a class="btn-insta" href="'+esc(v.url)+'" target="_blank" rel="noopener">▶ Ver vídeo no Instagram</a><button class="btn-cardio-zero" data-delvid="'+v.id+'">Remover</button></div>';
+box.appendChild(div);
+});
+box.querySelectorAll("[data-delvid]").forEach(b=>b.onclick=e=>{e.stopPropagation();if(confirm("Remover este vídeo da lista?")){setJ(K_VU,getVids().filter(x=>x.id!==b.getAttribute("data-delvid")));const o=getF();delete o[b.getAttribute("data-delvid")];setJ(K_CHECK,o);renderVids();renderChecks()}});
+}
+document.getElementById("btn-addvid").onclick=()=>{
+let url=(document.getElementById("vid-url").value||"").trim();
+const nome=(document.getElementById("vid-nome").value||"").trim()||"Vídeo extra";
+if(!url){alert("Cole o link do Reels");return}
+if(!/^https?:\/\//i.test(url))url="https://"+url;
+if(url.indexOf("instagram.com")<0&&!confirm("Esse link não parece do Instagram. Adicionar mesmo assim?"))return;
+const arr=getVids();arr.push({id:"vu"+Date.now(),nome:nome.slice(0,80),url:url.slice(0,500)});
+setJ(K_VU,arr);
+document.getElementById("vid-nome").value="";document.getElementById("vid-url").value="";
+renderVids();renderChecks();
+};
 // GPS corrida de rua — distância e ritmo (requer HTTPS + permissão; pausa com tela bloqueada)
-let runDist=parseFloat(localStorage.getItem(K_RD)||"0")||0,lastFix=null,gpsWatch=null,gpsOn=false,runMoveT=0;
+let runDist=parseFloat(localStorage.getItem(K_RD)||"0")||0,runMoveT=parseFloat(localStorage.getItem(K_RMT)||"0")||0,lastFix=null,gpsWatch=null,gpsOn=false;
 function fmtKm(km){return km.toFixed(2).replace(".",",")+" km"}
 function paceFmt(ms){if(!ms||ms<=0||!isFinite(ms))return"—";const s=1000/ms;return Math.floor(s/60)+"'"+String(Math.floor(s%60)).padStart(2,"0")+'"/km'}
-function persistDist(){try{localStorage.setItem(K_RD,String(runDist))}catch(e){}}
+function persistDist(){try{localStorage.setItem(K_RD,String(runDist));localStorage.setItem(K_RMT,String(Math.floor(runMoveT)))}catch(e){}}
 function drawGps(){const el=document.getElementById("gps-corrida");if(el)el.textContent=(gpsOn?"📍 GPS ligado • ":"📍 ")+fmtKm(runDist);const b=document.getElementById("btn-gps");if(b)b.textContent=gpsOn?"📍 Desligar GPS":"📍 Ativar GPS"}
 function hav(a,b){const R=6371000,t=Math.PI/180,dLa=(b.la-a.la)*t,dLo=(b.lo-a.lo)*t,s=Math.sin(dLa/2)*Math.sin(dLa/2)+Math.cos(a.la*t)*Math.cos(b.la*t)*Math.sin(dLo/2)*Math.sin(dLo/2);return 2*R*Math.asin(Math.sqrt(s))}
 document.getElementById("btn-gps").onclick=()=>{
@@ -419,7 +449,7 @@ const mobK=Object.keys(f).filter(k=>k[0]==="m"),vidK=Object.keys(f).filter(k=>k[
 const cus=getCus().filter(c=>f[c.id]);
 const nCardio=(f.c_esteira?1:0)+(f.c_escada?1:0)+(f.c_corrida?1:0);
 const done=mobK.length+vidK.length+cus.length+nCardio;
-const total=12+17+3+getCus().length;
+const total=12+17+3+getVids().length+getCus().length;
 document.getElementById("r-titulo").textContent="Treino de "+(nomeFinal||"você");
 let dStr="";try{dStr=dataFinal?new Date(dataFinal+"T12:00:00").toLocaleDateString("pt-BR"):""}catch(e){dStr=dataFinal}
 document.getElementById("r-meta").textContent=(dStr||"")+(enc.fim?" • "+new Date(enc.fim).toLocaleString("pt-BR"):"");
@@ -429,12 +459,12 @@ document.getElementById("r-cardio").textContent="E "+fmt(tE)+" • S "+fmt(tS)+"
 let h="";
 if(f.c_esteira)h+='<div class="res-sec">Cardio</div><div class="res-item">🏃‍♂️ Esteira '+fmt(tE)+" ✅</div>";
 if(f.c_escada)h+=(h.indexOf("res-sec")<0?'<div class="res-sec">Cardio</div>':"")+'<div class="res-item">🪜 Escada '+fmt(tS)+" ✅</div>";
-if(f.c_corrida)h+=(h.indexOf("res-sec")<0?'<div class="res-sec">Cardio</div>':"")+'<div class="res-item">🏁 Corrida de rua '+fmt(tC)+(runDist>0?" • "+fmtKm(runDist):"")+" ✅</div>";
+if(f.c_corrida){const _t=getI(K_TC),_mt=parseFloat(localStorage.getItem(K_RMT)||"0")||0,_base=(runMoveT>0?runMoveT:(_mt>0?_mt:_t))||1,_av=runDist>0?((runDist*1000)/_base):0;h+=(h.indexOf("res-sec")<0?'<div class="res-sec">Cardio</div>':"")+'<div class="res-item">🏁 Corrida de rua '+fmt(_t)+" ✅</div>";if(runDist>0)h+='<div style="font-size:34px;font-weight:900;color:#111">'+fmtKm(runDist)+'</div><div class="res-item">ritmo médio '+paceFmt(_av)+'</div>'}
 h+='<div class="res-sec">Mobilidade ('+mobK.length+'/12)</div>';
 if(!mobK.length)h+='<div class="res-item">—</div>';
 for(let i=0;i<12;i++)if(f["m"+i]){const im=document.querySelector('[data-id="m'+i+'"] img');h+='<div class="res-item">✅ '+(i+1)+". "+MOB_NOMES[i]+"</div>";if(im)h+='<img src="'+im.src+'">'}
 h+='<div class="res-sec">Vídeos ('+vidK.length+'/17)</div>';
-h+=vidK.length?vidK.map(k=>'<div class="res-item">✅ Vídeo '+(parseInt(k.slice(1))+1)+"</div>").join(""):'<div class="res-item">—</div>';
+h+=vidK.length?vidK.map(k=>'<div class="res-item">✅ '+esc(vidName(k))+"</div>").join(""):'<div class="res-item">—</div>';
 h+='<div class="res-sec">Extras ('+cus.length+')</div>';
 if(!cus.length)h+='<div class="res-item">—</div>';
 cus.forEach(c=>{h+='<div class="res-item">✅ '+c.nome+"</div>";if(c.foto)h+='<img src="'+c.foto+'">'});
@@ -468,13 +498,13 @@ const tot=enc.total!=null?enc.total:totalNow();
 const mobK=Object.keys(f).filter(k=>k[0]==="m"),vidK=Object.keys(f).filter(k=>k[0]==="v");
 const cus=getCus().filter(c=>f[c.id]);
 const done=mobK.length+vidK.length+cus.length+(f.c_esteira?1:0)+(f.c_escada?1:0)+(f.c_corrida?1:0);
-const total=12+17+3+getCus().length;
+const total=12+17+3+getVids().length+getCus().length;
 const items=[];
 if(f.c_esteira)items.push("Esteira "+fmt(getI(K_TE)));
 if(f.c_escada)items.push("Escada "+fmt(getI(K_TS)));
-if(f.c_corrida)items.push("Corrida "+fmt(getI(K_TC))+(runDist>0?" • "+fmtKm(runDist):""));
+if(f.c_corrida){const _t2=getI(K_TC),_m2=parseFloat(localStorage.getItem(K_RMT)||"0")||0,_b2=(runMoveT>0?runMoveT:(_m2>0?_m2:_t2))||1;items.push("Corrida "+(runDist>0?fmtKm(runDist)+" em "+fmt(_t2)+" ("+paceFmt((runDist*1000)/_b2)+")":fmt(_t2)))}
 for(let i=0;i<12;i++)if(f["m"+i])items.push((i+1)+". "+MOB_NOMES[i]);
-vidK.forEach(k=>items.push("Video "+(parseInt(k.slice(1))+1)));
+vidK.forEach(k=>items.push(vidName(k)));
 cus.forEach(c=>items.push(c.nome.replace(/<[^>]*>/g,"").slice(0,42)));
 return{nome,data,tot,done,total,tE:getI(K_TE),tS:getI(K_TS),items};
 }
@@ -565,8 +595,8 @@ if(deferredPrompt){deferredPrompt.prompt();try{await deferredPrompt.userChoice}c
 else{alert("Siga o passo a passo acima no seu celular. Vale pra este arquivo mesmo (ele funciona offline).")}
 };
 function setA(b){document.querySelectorAll(".filters button").forEach(x=>x.classList.remove("active"));b.classList.add("active")}
-function renderAll(){renderCustom();renderChecks();drawC("esteira");drawC("escada");drawC("corrida");drawGps();drawT();if(getJ(K_ENC,{}).encerrado)showResumo()}
-renderCustom();
+function renderAll(){renderCustom();renderVids();renderChecks();drawC("esteira");drawC("escada");drawC("corrida");drawGps();drawT();if(getJ(K_ENC,{}).encerrado)showResumo()}
+renderCustom();renderVids();
 renderAll();
 </script>
 <script>
