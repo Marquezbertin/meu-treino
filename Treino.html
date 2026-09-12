@@ -232,6 +232,18 @@ body::before{display:none}
 <button class="btn-add" id="btn-add">📸 Adicionar com foto</button>
 <span class="hint">Você pode adicionar exercício sem foto também. Não precisa fazer tudo — no final só entram os feitos.</span>
 </div>
+<div class="secao">🏆 Metas da semana</div>
+<div class="card"><div class="info">
+<div style="display:flex;gap:12px;margin-bottom:10px">
+<div style="flex:1"><div style="font-size:11px;color:var(--muted);font-weight:700">TREINOS</div><div style="font-size:20px;font-weight:900" id="meta-t-count">0/3</div><div class="progress-wrap"><div class="progress-bar" id="meta-t-bar"></div></div></div>
+<div style="flex:1"><div style="font-size:11px;color:var(--muted);font-weight:700">CORRIDA KM</div><div style="font-size:20px;font-weight:900" id="meta-k-count">0/10 km</div><div class="progress-wrap"><div class="progress-bar" id="meta-k-bar"></div></div></div>
+</div>
+<div style="display:flex;gap:8px;margin-bottom:10px">
+<label style="flex:1;font-size:12px;color:var(--muted)">Meta treinos<input type="number" id="goal-t" min="1" max="14" style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--txt);margin-top:4px"></label>
+<label style="flex:1;font-size:12px;color:var(--muted)">Meta km/semana<input type="number" id="goal-k" min="1" max="300" style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--txt);margin-top:4px"></label>
+</div>
+<button class="btn-cardio-zero" id="btn-hist" style="width:100%">📜 Ver histórico</button>
+</div></div>
 </main>
 
 <div id="resumo">
@@ -272,10 +284,11 @@ body::before{display:none}
 </div>
 
 <div id="install-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:60;align-items:center;justify-content:center;padding:16px"><div style="background:#141417;border:1px solid #333;border-radius:20px;padding:20px;max-width:420px;width:100%"><div style="font-weight:900;font-size:17px;margin-bottom:8px">⬇ Baixar como aplicativo</div><div id="install-text" style="font-size:14px;color:#d4d4d8;line-height:1.65">...</div><div style="display:flex;gap:8px;margin-top:14px"><button id="install-do" style="flex:1;padding:14px;border-radius:12px;border:0;background:linear-gradient(135deg,#ff6b00,#ffa200);font-weight:800">Instalar</button><button id="install-close" style="flex:1;padding:14px;border-radius:12px;border:1px solid #333;background:#222;color:#fff;font-weight:700">Fechar</button></div></div></div>
+<div id="hist-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:60;align-items:center;justify-content:center;padding:16px"><div style="background:#fff;color:#111;border-radius:20px;padding:18px;max-width:440px;width:100%;max-height:88vh;overflow:auto"><div style="font-weight:900;font-size:17px">📜 Histórico de treinos</div><div id="hist-list" style="font-size:14px;line-height:1.6;margin-top:8px"></div><div style="display:flex;gap:8px;margin-top:12px"><button id="hist-clear" style="flex:1;padding:13px;border-radius:12px;border:1px solid #ddd;background:#f4f4f6;font-weight:700">Limpar</button><button id="hist-close" style="flex:1;padding:13px;border-radius:12px;border:0;background:#111;color:#fff;font-weight:800">Fechar</button></div></div></div>
 <div class="bottom"><button id="btn-zerar">↩ Zerar dia</button><button class="primary" id="btn-top-encerrar">🏁 Encerrar</button></div>
 
 <script>
-const K_USER="treino_user_V1",K_CHECK="treino_checks_V1",K_CUS="treino_custom_V1",K_TE="cardio_esteira_total_V1",K_TS="cardio_escada_total_V1",K_TE_S="cardio_esteira_sess_V1",K_TS_S="cardio_escada_sess_V1",K_TC="cardio_corrida_total_V1",K_TC_S="cardio_corrida_sess_V1",K_TER="cardio_esteira_run_V1",K_TSR="cardio_escada_run_V1",K_TCR="cardio_corrida_run_V1",K_RD="corrida_dist_V1",K_RMT="corrida_movetime_V1",K_VU="treino_videos_V1",K_TA="totalwork_accum_V1",K_TST="totalwork_start_V1",K_TR="totalwork_running_V1",K_ENC="treino_encerrado_V1";
+const K_USER="treino_user_V1",K_CHECK="treino_checks_V1",K_CUS="treino_custom_V1",K_TE="cardio_esteira_total_V1",K_TS="cardio_escada_total_V1",K_TE_S="cardio_esteira_sess_V1",K_TS_S="cardio_escada_sess_V1",K_TC="cardio_corrida_total_V1",K_TC_S="cardio_corrida_sess_V1",K_TER="cardio_esteira_run_V1",K_TSR="cardio_escada_run_V1",K_TCR="cardio_corrida_run_V1",K_RD="corrida_dist_V1",K_RMT="corrida_movetime_V1",K_VU="treino_videos_V1",K_TA="totalwork_accum_V1",K_TST="totalwork_start_V1",K_TR="totalwork_running_V1",K_ENC="treino_encerrado_V1",K_HIST="treino_hist_V1",K_GOALS="treino_goals_V1";
 let filtro="todos";
 function getJ(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}}
 function setJ(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){alert("Armazenamento cheio! Remova fotos antigas.")}}
@@ -459,6 +472,7 @@ if(tRun){tAcc=totalNow();tRun=false;setI(K_TA,tAcc);localStorage.setItem(K_TR,"0
 foldC("esteira");foldC("escada");foldC("corrida");
 persistC("esteira");persistC("escada");persistC("corrida");persistDist();
 const enc={encerrado:true,fim:new Date().toISOString(),total:tAcc};setJ(K_ENC,enc);
+try{const f2=getF(),mobN=Object.keys(f2).filter(k=>k[0]==="m").length,vidN=Object.keys(f2).filter(k=>k[0]==="v").length,cusN=getCus().filter(c=>f2[c.id]).length,nc=(f2.c_esteira?1:0)+(f2.c_escada?1:0)+(f2.c_corrida?1:0);const hh=getJ(K_HIST,[]);hh.unshift({fim:enc.fim,nome:(nomeEl.value||""),total:tAcc,done:mobN+vidN+cusN+nc,tE:getI(K_TE),tS:getI(K_TS),tC:Math.max(getI(K_TC),cElapsed(cardio.corrida)),km:Math.round(runDist*100)/100});setJ(K_HIST,hh.slice(0,60))}catch(e){}
 showResumo();
 }
 function showResumo(){
@@ -620,8 +634,32 @@ else{alert("Siga o passo a passo acima no seu celular. Vale pra este arquivo mes
 function applyTheme(t){document.body.classList.toggle("light",t==="light");const b=document.getElementById("btn-theme");if(b)b.textContent=t==="light"?"🌙":"☀️"}
 (function(){let t="dark";try{t=localStorage.getItem("treino_theme_V1")||"dark"}catch(e){}applyTheme(t)})();
 document.getElementById("btn-theme").onclick=()=>{const light=!document.body.classList.contains("light");try{localStorage.setItem("treino_theme_V1",light?"light":"dark")}catch(e){}applyTheme(light?"light":"dark")};
+// ===== METAS + HISTÓRICO =====
+function getGoals(){const g=getJ(K_GOALS,{});return{t:g.t||3,k:g.k||10}}
+function weekStart(){const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()-((d.getDay()+6)%7));return d.getTime()}
+function drawGoals(){
+const g=getGoals(),ws=weekStart();let nt=0,km=0;
+getJ(K_HIST,[]).forEach(r=>{try{if(new Date(r.fim).getTime()>=ws){nt++;km+=r.km||0}}catch(e){}});
+document.getElementById("meta-t-count").textContent=nt+"/"+g.t;
+document.getElementById("meta-k-count").textContent=fmtKm(km)+"/"+String(g.k).replace(".",",")+" km";
+document.getElementById("meta-t-bar").style.width=Math.min(100,Math.round(nt/g.t*100))+"%";
+document.getElementById("meta-k-bar").style.width=Math.min(100,Math.round(km/g.k*100))+"%";
+const gt=document.getElementById("goal-t"),gk=document.getElementById("goal-k");
+if(gt&&document.activeElement!==gt)gt.value=g.t;
+if(gk&&document.activeElement!==gk)gk.value=g.k;
+}
+document.getElementById("goal-t").onchange=e=>{const g=getGoals();g.t=Math.max(1,parseInt(e.target.value)||3);setJ(K_GOALS,g);drawGoals()};
+document.getElementById("goal-k").onchange=e=>{const g=getGoals();g.k=Math.max(1,parseFloat(String(e.target.value).replace(",","."))||10);setJ(K_GOALS,g);drawGoals()};
+function openHist(){
+const hh=getJ(K_HIST,[]);
+document.getElementById("hist-list").innerHTML=hh.length?hh.map(r=>{let dt="";try{dt=new Date(r.fim).toLocaleString("pt-BR")}catch(e){}return '<div style="padding:8px 0;border-bottom:1px solid #eee"><b>'+esc(dt)+'</b> • '+esc(r.nome||"")+'<br>✅ '+r.done+' feitos • ⏱ '+fmt(r.total||0)+(r.km>0?' • 🏁 '+fmtKm(r.km):"")+'</div>'}).join(""):"Nenhum treino encerrado ainda. Encerre um treino que ele aparece aqui.";
+document.getElementById("hist-modal").style.display="flex";
+}
+document.getElementById("btn-hist").onclick=openHist;
+document.getElementById("hist-close").onclick=()=>{document.getElementById("hist-modal").style.display="none"};
+document.getElementById("hist-clear").onclick=()=>{if(confirm("Apagar todo o histórico?")){setJ(K_HIST,[]);openHist();drawGoals()}};
 function setA(b){document.querySelectorAll(".filters button").forEach(x=>x.classList.remove("active"));b.classList.add("active")}
-function renderAll(){renderCustom();renderVids();renderChecks();drawC("esteira");drawC("escada");drawC("corrida");drawGps();drawT();if(getJ(K_ENC,{}).encerrado)showResumo()}
+function renderAll(){renderCustom();renderVids();renderChecks();drawC("esteira");drawC("escada");drawC("corrida");drawGps();drawT();drawGoals();if(getJ(K_ENC,{}).encerrado)showResumo()}
 renderCustom();renderVids();
 renderAll();
 </script>
