@@ -127,6 +127,28 @@ main{padding:16px 14px 190px;max-width:640px;margin:0 auto;position:relative;z-i
 .share-box img{width:100%;border-radius:12px;border:1px solid #333;margin:10px 0}
 .share-box .row{display:flex;gap:8px}
 .share-box .row button{flex:1;padding:14px;border-radius:12px;border:0;font-weight:800}
+/* ===== TEMA CLARO ===== */
+body.light{--bg:#f2f2f5;--card:#ffffff;--card2:#f5f5f8;--line:#e3e3ea;--line2:#cfcfd8;--muted:#63636e;--txt:#151518;--shadow:0 8px 24px rgba(0,0,0,.10)}
+body.light::before{opacity:.4}
+body.light header{background:rgba(255,255,255,.92)}
+body.light .user-row input{background:#fff;color:#111;border-color:var(--line2)}
+body.light .total-bar{background:linear-gradient(180deg,#fff,#f3f3f6)}
+body.light .total-time{color:#111}
+body.light .filters{background:#e9e9ef}
+body.light .filters button{color:#55555e}
+body.light .filters button.active{background:#fff;color:#111}
+body.light .check-btn{background:#efeff3;border-color:#cfcfd8}
+body.light .desc{color:#3f3f47}
+body.light .cardio-total{color:#1d4ed8}
+body.light .btn-cardio-zero{background:#ececf1;border-color:var(--line2);color:#111}
+body.light .add-box{background:#fff}
+body.light .add-box input[type=text]{background:#f4f4f7;color:#111}
+body.light .dicas{color:#9a3412}
+body.light .bottom{background:rgba(255,255,255,.95)}
+body.light .bottom button{background:#ececf1;border-color:var(--line2);color:#111}
+body.light .share-box{background:#fff}
+body.light .share-box{color:#111}
+body.light .hint{color:#71717a}
 @media print{
 header,main,.bottom,.res-btns{display:none!important}
 #resumo{display:block!important}
@@ -139,7 +161,7 @@ body::before{display:none}
 </head>
 <body>
 <header id="topo">
-<div class="brand"><div class="logo">💪</div><h1 style="flex:1">MEU <span>TREINO</span><small>FORÇA • MOBILIDADE • CARDIO • CORRIDA</small></h1><button id="btn-install" title="Baixar como app" style="background:linear-gradient(135deg,#ff6b00,#ffa200);border:0;border-radius:12px;padding:11px 13px;font-weight:800;font-size:13px;color:#000">⬇ App</button></div>
+<div class="brand"><div class="logo">💪</div><h1 style="flex:1">MEU <span>TREINO</span><small>FORÇA • MOBILIDADE • CARDIO • CORRIDA</small></h1><button id="btn-theme" title="Tema claro/escuro" style="background:#1d1d22;border:1px solid #333;border-radius:12px;padding:11px 13px;font-weight:800;font-size:15px;color:#fff">☀️</button><button id="btn-install" title="Baixar como app" style="background:linear-gradient(135deg,#ff6b00,#ffa200);border:0;border-radius:12px;padding:11px 13px;font-weight:800;font-size:13px;color:#000">⬇ App</button></div>
 <div class="user-row">
 <input id="nome" placeholder="Seu nome ex: Carlos" autocomplete="name">
 <input id="data" type="date">
@@ -594,6 +616,10 @@ document.getElementById("install-do").onclick=async()=>{
 if(deferredPrompt){deferredPrompt.prompt();try{await deferredPrompt.userChoice}catch(e){}deferredPrompt=null;document.getElementById("install-modal").style.display="none"}
 else{alert("Siga o passo a passo acima no seu celular. Vale pra este arquivo mesmo (ele funciona offline).")}
 };
+// ===== TEMA CLARO/ESCURO (preferência salva, não apaga no zerar) =====
+function applyTheme(t){document.body.classList.toggle("light",t==="light");const b=document.getElementById("btn-theme");if(b)b.textContent=t==="light"?"🌙":"☀️"}
+(function(){let t="dark";try{t=localStorage.getItem("treino_theme_V1")||"dark"}catch(e){}applyTheme(t)})();
+document.getElementById("btn-theme").onclick=()=>{const light=!document.body.classList.contains("light");try{localStorage.setItem("treino_theme_V1",light?"light":"dark")}catch(e){}applyTheme(light?"light":"dark")};
 function setA(b){document.querySelectorAll(".filters button").forEach(x=>x.classList.remove("active"));b.classList.add("active")}
 function renderAll(){renderCustom();renderVids();renderChecks();drawC("esteira");drawC("escada");drawC("corrida");drawGps();drawT();if(getJ(K_ENC,{}).encerrado)showResumo()}
 renderCustom();renderVids();
