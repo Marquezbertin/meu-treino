@@ -1,4 +1,4 @@
-const C = 'treino-v1';
+const C = 'treino-v2';
 const A = ['./', 'index.html', 'manifest.webmanifest'];
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(C).then((c) => c.addAll(A)).then(() => self.skipWaiting()).catch(() => {}));
