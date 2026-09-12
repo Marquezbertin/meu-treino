@@ -222,7 +222,7 @@ body::before{display:none}
 <input type="text" id="vid-nome" placeholder="Nome (ex: Treino de pernas)">
 <input type="text" id="vid-url" placeholder="Cole o link do Reels aqui" inputmode="url">
 <button class="btn-add" id="btn-addvid" style="background:linear-gradient(135deg,#E1306C,#ff5e8a);color:#fff">➕ Adicionar vídeo</button>
-<span class="hint">Achou um treino legal no Instagram? Cole o link que ele entra na lista pra sempre (só sai se você remover).</span>
+<span class="hint">Achou um treino legal no Instagram? Cole o link (vale o normal ou o curtinho) que ele entra na lista e abre igual aos outros.</span>
 </div>
 <div class="secao">➕ Extras / Aparelhos (com foto)</div>
 <div id="lista-custom"></div>
@@ -392,6 +392,7 @@ document.getElementById("zero-corrida").onclick=()=>zeroC("corrida");
 function getVids(){return getJ(K_VU,[])}
 function vidName(id){if(/^v\d+$/.test(id))return "Vídeo "+(parseInt(id.slice(1))+1);const v=getVids().find(x=>x.id===id);return v?v.nome:"Vídeo"}
 function renderVids(){
+try{const arr=getVids();let ch=false;arr.forEach(v=>{const n=normInsta(v.url);if(n&&n!==v.url){v.url=n;ch=true}});if(ch)setJ(K_VU,arr)}catch(e){}
 const box=document.getElementById("lista-videos");if(!box)return;
 box.querySelectorAll('[data-id^="vu"]').forEach(d=>d.remove());
 getVids().forEach(v=>{
@@ -401,12 +402,25 @@ box.appendChild(div);
 });
 box.querySelectorAll("[data-delvid]").forEach(b=>b.onclick=e=>{e.stopPropagation();if(confirm("Remover este vídeo da lista?")){setJ(K_VU,getVids().filter(x=>x.id!==b.getAttribute("data-delvid")));const o=getF();delete o[b.getAttribute("data-delvid")];setJ(K_CHECK,o);renderVids();renderChecks()}});
 }
+// padroniza qualquer link do Instagram no MESMO formato dos 17 fixos (https://www.instagram.com/...)
+function normInsta(u){
+let s=String(u||"").trim();
+if(!s)return "";
+if(!/^https?:\/\//i.test(s))s="https://"+s;
+try{
+const a=document.createElement("a");a.href=s;
+const h=(a.hostname||"").toLowerCase();
+if(h!=="www.instagram.com"&&h!=="instagram.com"&&h!=="m.instagram.com"&&h!=="instagr.am"&&h!=="ig.me")return "";
+if((a.pathname||"/").length<2)return "";
+return "https://www.instagram.com"+a.pathname+(a.search||"")+(a.hash||"");
+}catch(e){return ""}
+}
 document.getElementById("btn-addvid").onclick=()=>{
 let url=(document.getElementById("vid-url").value||"").trim();
 const nome=(document.getElementById("vid-nome").value||"").trim()||"Vídeo extra";
 if(!url){alert("Cole o link do Reels");return}
-if(!/^https?:\/\//i.test(url))url="https://"+url;
-if(url.indexOf("instagram.com")<0&&!confirm("Esse link não parece do Instagram. Adicionar mesmo assim?"))return;
+url=normInsta(url);
+if(!url){alert("Esse link não parece do Instagram. Copie o link do Reels (vale o link normal ou o curtinho instagr.am) e tente de novo.");return}
 const arr=getVids();arr.push({id:"vu"+Date.now(),nome:nome.slice(0,80),url:url.slice(0,500)});
 setJ(K_VU,arr);
 document.getElementById("vid-nome").value="";document.getElementById("vid-url").value="";
